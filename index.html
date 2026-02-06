@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>Wall of Kindness - Valentine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+body {
+  margin: 0;
+  font-family: Poppins, sans-serif;
+  background: #FB6F92;
+  min-height: 100vh;
+  color: #fff;
+  text-align: center;
+}
+
+.container {
+  padding: 20px;
+  max-width: 700px;
+  margin: auto;
+}
+
+h1 { font-size: 2.5rem; margin-bottom: 5px; }
+
+.subtitle { margin-bottom: 15px; }
+
+.about {
+  background: rgba(255,255,255,0.25);
+  padding: 15px;
+  border-radius: 15px;
+  margin-bottom: 25px;
+}
+
+form {
+  background: rgba(255,255,255,0.2);
+  padding: 20px;
+  border-radius: 18px;
+  margin-bottom: 30px;
+}
+
+input, textarea {
+  width: 100%;
+  padding: 10px;
+  margin: 8px 0;
+  border-radius: 10px;
+  border: none;
+}
+
+textarea { height: 90px; }
+
+button {
+  background: #ff4f7b;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 25px;
+  cursor: pointer;
+}
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill,minmax(160px,1fr));
+  gap: 12px;
+}
+
+.card {
+  background: rgba(255,255,255,0.3);
+  border-radius: 15px;
+  padding: 12px;
+  font-size: 0.85rem;
+}
+
+.footer { margin-top: 20px; font-size: 0.8rem; }
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💖 Wall of Kindness 💖</h1>
+<div class="subtitle">Sebarkan kebaikan di Hari Valentine!</div>
+
+<div class="about">
+Valentine bukan cuma soal cokelat — tapi berbagi kebaikan 💌
+</div>
+
+<form id="messageForm">
+<input id="to" placeholder="Untuk siapa?" required>
+<textarea id="message" placeholder="Pesan baikmu..." required></textarea>
+<input id="from" placeholder="Dari siapa? (opsional)">
+<button>Kirim 💌</button>
+</form>
+
+<div class="wall" id="wall"></div>
+
+<div class="footer">Dibuat dengan cinta 💗</div>
+
+</div>
+
+<!-- 🔥 FIREBASE SCRIPT -->
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.9.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  addDoc,
+  onSnapshot,
+  query,
+  orderBy,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/12.9.0/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyBQff2w0qx3slAX1Yx_sDjOBpeNo1hMqeo",
+  authDomain: "wallkindy.firebaseapp.com",
+  projectId: "wallkindy",
+  storageBucket: "wallkindy.firebasestorage.app",
+  messagingSenderId: "634640469209",
+  appId: "1:634640469209:web:4c2fbdf383a13d238942c8"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const form = document.getElementById("messageForm");
+const wall = document.getElementById("wall");
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+
+  const to = document.getElementById("to").value;
+  const message = document.getElementById("message").value;
+  const from = document.getElementById("from").value || "Anonim";
+
+  await addDoc(collection(db, "messages"), {
+    to, message, from,
+    time: serverTimestamp()
+  });
+
+  form.reset();
+});
+
+const q = query(collection(db, "messages"), orderBy("time","desc"));
+
+onSnapshot(q, snapshot => {
+  wall.innerHTML = "";
+  snapshot.forEach(doc => {
+    const msg = doc.data();
+
+    const card = document.createElement("div");
+    card.className = "card";
+    card.innerHTML = `
+      <strong>Untuk: ${msg.to}</strong>
+      ${msg.message}<br><br>
+      <em>- ${msg.from}</em>
+    `;
+    wall.appendChild(card);
+  });
+});
+
+</script>
+
+</body>
+</html>
